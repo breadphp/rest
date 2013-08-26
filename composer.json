@@ -1,0 +1,30 @@
+{
+	"name" : "bread/rest",
+	"description" : "Bread REST framework",
+	"type" : "framework",
+	"authors" : [{
+			"name" : "Giovanni Lovato",
+			"email" : "heruan@aldu.net"
+		}
+	],
+	"keywords" : [
+		"bread",
+		"rest",
+		"framework",
+		"mvc"
+	],
+	"homepage" : "https://github.com/breadphp/rest",
+	"license" : [
+		"CC-BY-3.0"
+	],
+	"require" : {
+		"bread/storage" : "~0.2",
+		"php" : ">=5.5",
+		"bread/http" : "~1.0"
+	},
+	"autoload" : {
+		"psr-0" : {
+			"Bread\\REST" : "src"
+		}
+	}
+}
