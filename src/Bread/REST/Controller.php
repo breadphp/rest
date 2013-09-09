@@ -14,11 +14,15 @@
  */
 namespace Bread\REST;
 
+use Bread\REST\Interfaces\RFC2616;
 use Bread\Networking\HTTP\Request;
 use Bread\Networking\HTTP\Response;
+use Bread\Networking\HTTP\Exception;
+use Bread\Networking\HTTP\Server\Exceptions\NotImplemented;
 use Bread\Networking\HTTP\Client\Exceptions\MethodNotAllowed;
+use Bread\REST\Routing\Route;
 
-abstract class Controller
+abstract class Controller implements RFC2616
 {
     protected $request;
     protected $response;
@@ -29,26 +33,74 @@ abstract class Controller
         $this->response = $response;
     }
     
-    public function __call($method)
+    public function __call($method, array $arguments = array())
     {
-        throw new MethodNotAllowed($method);
+        throw new NotImplemented($this->request->method);
+    }
+
+    public function options($resource)
+    {
+        switch ($this->request->uri) {
+            case '*':
+            default:
+                $allowedMethods = $this->allowedMethods();
+                $allowHeader = implode(',', $allowedMethods);
+        }
+        $this->response->headers['Allow'] = $allowHeader;
     }
     
-    abstract public function get();
+    public function get($resource)
+    {
+        $this->response->type('json');
+        return json_encode($resource, JSON_PRETTY_PRINT);
+    }
     
-    abstract public function head();
+    public function head($resource)
+    {
+        $this->response->once('headers', array($this->response, 'end'));
+        return $this->get($parameters);
+    }
     
-    abstract public function post();
+    public function post($resource)
+    {
+        throw new NotImplemented($this->request->method);
+    }
     
-    abstract public function put();
+    public function put($resource)
+    {
+        throw new NotImplemented($this->request->method);
+    }
     
-    abstract public function delete();
+    public function delete($resource)
+    {
+        throw new NotImplemented($this->request->method);
+    }
     
-    abstract public function trace();
+    public function trace($resource)
+    {
+        $this->response->type('message/http');
+        return (string) $this->request;
+    }
     
-    abstract public function options();
+    public function connect($resource)
+    {
+        throw new MethodNotAllowed(strtoupper(__FUNCTION__));
+    }
     
-    abstract public function connect();
+    public static function controlledResource(array $parameters = array()) {
+        throw new NotImplemented();
+    }
     
-    abstract public function patch();
+    protected function allowedMethods()
+    {
+        return array(
+            'OPTIONS',
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'DELETE',
+            'TRACE'
+        );
+    }
 }

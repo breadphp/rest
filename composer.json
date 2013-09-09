@@ -18,7 +18,7 @@
 		"CC-BY-3.0"
 	],
 	"require" : {
-		"bread/storage" : "~0.2",
+		"bread/storage" : "~0",
 		"php" : ">=5.5",
 		"bread/http" : "~1.0"
 	},
