@@ -9,6 +9,7 @@ use Bread\Caching\Cache;
 use Bread\Promises\When;
 use JsonSerializable;
 use Iterator;
+use Bread\Helpers\JSON;
 
 abstract class Model implements JsonSerializable
 {
@@ -99,7 +100,7 @@ abstract class Model implements JsonSerializable
     {
         $computed = array();
         $class = get_class($this);
-        foreach (Configuration::get($class, "keys") as $keyProperty) {
+        foreach (Configuration::get($class, "properties") as $keyProperty => $options) {
             if ($function = Configuration::get($class, "properties.$keyProperty.computed")) {
                 $computed[$keyProperty] = call_user_func($function, $this);
             }
@@ -116,6 +117,15 @@ abstract class Model implements JsonSerializable
     {
         $class = get_class($this);
         return Storage::driver($class)->delete($this);
+    }
+    
+    public static function fromJSON($json)
+    {
+        $object = new static;
+        foreach(JSON::decode($json) as $property => $value) {
+            $object->__set($property, $value);
+        }
+        return $object;
     }
 
     public static function count(array $search = array(), array $options = array())

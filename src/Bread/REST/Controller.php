@@ -21,16 +21,25 @@ use Bread\Networking\HTTP\Exception;
 use Bread\Networking\HTTP\Server\Exceptions\NotImplemented;
 use Bread\Networking\HTTP\Client\Exceptions\MethodNotAllowed;
 use Bread\REST\Routing\Route;
+use Bread\Promises\Deferred;
+use Bread\Networking\HTTP\Client\Exceptions\UnsupportedMediaType;
+use Bread\Helpers\JSON;
+use Bread\Streaming\Bucket;
 
 abstract class Controller implements RFC2616
 {
     protected $request;
     protected $response;
+    protected $route;
+    protected $data;
     
-    public function __construct(Request $request, Response $response)
+    public function __construct(Request $request, Response $response, Route $route)
     {
         $this->request = $request;
         $this->response = $response;
+        $this->route = $route;
+        $this->data = new Deferred();
+        $this->processData();
     }
     
     public function __call($method, array $arguments = array())
@@ -52,7 +61,7 @@ abstract class Controller implements RFC2616
     public function get($resource)
     {
         $this->response->type('json');
-        return json_encode($resource, JSON_PRETTY_PRINT);
+        return JSON::encode($resource);
     }
     
     public function head($resource)
@@ -73,7 +82,9 @@ abstract class Controller implements RFC2616
     
     public function delete($resource)
     {
-        throw new NotImplemented($this->request->method);
+        return $resource->delete()->then(function($deletedResource) {
+            return $this->response->status(Response::STATUS_NO_CONTENT);
+        });
     }
     
     public function trace($resource)
@@ -87,8 +98,34 @@ abstract class Controller implements RFC2616
         throw new MethodNotAllowed(strtoupper(__FUNCTION__));
     }
     
-    public static function controlledResource(array $parameters = array()) {
-        throw new NotImplemented();
+    abstract public function controlledResource(array $parameters = array());
+    
+    protected function processData()
+    {
+        switch ($this->request->type) {
+            case 'application/json':
+            case 'application/x-www-form-urlencoded':
+                $bucket = new Bucket($this->request);
+                $this->request->on('end', function() use ($bucket) {
+                    $this->data->resolve($bucket->contents());
+                });
+                break;
+            case 'multipart/form-data':
+                $this->request->on('parts', function ($parts) {
+                    $this->data->resolve($parts);
+                });
+                break;
+            case 'default':
+                throw new UnsupportedMediaType($this->request->type);
+        }
+    }
+    
+    protected function decodeData($data)
+    {
+        switch ($this->request->type) {
+            case 'application/json':
+                return JSON::decode($data);
+        }
     }
     
     protected function allowedMethods()
