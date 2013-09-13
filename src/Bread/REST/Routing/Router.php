@@ -8,11 +8,13 @@ use Bread\Configuration\Manager as Configuration;
 use Bread\Networking\HTTP\Response;
 use Bread\REST\Controller;
 use Bread\Networking\HTTP\Client\Exceptions\NotFound;
+use Bread\REST\Routing\URI\Template;
 
 class Router
 {
     protected $request;
     protected $response;
+    protected $route;
     protected $routingTable;
     
     public function __construct(Request $request, Response $response)
@@ -31,8 +33,8 @@ class Router
                     if (!is_subclass_of($controllerClass, Controller::class)) {
                         throw new NotFound($this->request->uri);
                     }
-                    $controlledResource = $controllerClass::controlledResource($parameters);
-                    $controller = new $controllerClass($this->request, $this->response);
+                    $controller = new $controllerClass($this->request, $this->response, $route);
+                    $controlledResource = $controller->controlledResource($parameters);
                     $method = $this->inflectMethodName($this->request->method, $route->method);
                     $callback = array($controller, $method);
                     return array($callback, $controlledResource, $parameters);

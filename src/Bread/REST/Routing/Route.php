@@ -3,6 +3,7 @@ namespace Bread\REST\Routing;
 
 use Bread\Configuration;
 use Bread\REST\Model;
+use Bread\REST\Routing\URI\Template;
 
 class Route extends Model
 {
@@ -19,6 +20,12 @@ class Route extends Model
     {
         $this->uri = $uri;
         $this->controller = $controller;
+    }
+    
+    public function expand(array $variables = array())
+    {
+        $template = new Template($this->uri);
+        return $template->expand($variables);
     }
 }
 

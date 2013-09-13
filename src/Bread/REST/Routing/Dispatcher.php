@@ -3,8 +3,8 @@
 namespace Bread\REST\Routing;
 
 use Bread\Networking\HTTP;
-use Exception;
 use Bread\Networking\HTTP\Client\Exceptions\NotFound;
+use Exception;
 
 class Dispatcher
 {
@@ -15,8 +15,8 @@ class Dispatcher
         return $router->route($request->uri)->then(function ($result) use ($request, $response) {
             // TODO implement firewall
             return $result;
-            $firewall = new Firewall();
-            return $firewall->access();
+            $firewall = new Firewall($request, $response);
+            return $firewall->access($result);
         })->then(function ($result) use ($request, $response) {
             list ($callback, $resource, $parameters) = $result;
             return $resource->then(function($resource) use ($callback, $parameters) {
