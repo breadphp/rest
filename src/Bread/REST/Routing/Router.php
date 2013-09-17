@@ -9,6 +9,7 @@ use Bread\Networking\HTTP\Response;
 use Bread\REST\Controller;
 use Bread\Networking\HTTP\Client\Exceptions\NotFound;
 use Bread\REST\Routing\URI\Template;
+use Bread\Promises\When;
 
 class Router
 {
@@ -40,6 +41,8 @@ class Router
                     return array($callback, $controlledResource, $parameters);
                 }
             }
+            return When::reject($uri);
+        })->then(null, function($uri) {
             throw new NotFound($uri);
         });
     }
