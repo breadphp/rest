@@ -4,12 +4,13 @@ namespace Bread\REST;
 use Bread\Configuration\Manager as Configuration;
 use Bread\Storage\Manager as Storage;
 use Bread\REST\Exceptions\RequiredAttribute;
-use Bread\Model\Exceptions\InvalidAttribute;
+use Bread\REST\Exceptions\InvalidAttribute;
 use Bread\Caching\Cache;
 use Bread\Promises\When;
 use JsonSerializable;
 use Iterator;
 use Bread\Helpers\JSON;
+use Bread\Promises\Interfaces\Promise;
 
 abstract class Model implements JsonSerializable
 {
@@ -87,7 +88,7 @@ abstract class Model implements JsonSerializable
                 break;
             default:
                 if (class_exists($type)) {
-                    if ($value instanceof $type) {
+                    if ($value instanceof $type || $value instanceof Promise) {
                         return true;
                     }
                     throw new InvalidAttribute($class, $property, $class);
