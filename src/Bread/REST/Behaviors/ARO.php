@@ -11,8 +11,9 @@ abstract class ARO extends ACO {
     return Authentication::driver($class)->authenticate($class, $username, $password);
   }
 
-  abstract public function isMember(ARO $aro);
-  abstract public function href();
-  abstract public function getMember();
+  public function isMember(ARO $aro)
+  {
+      return $this === $aro;
+  }
 
 }

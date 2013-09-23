@@ -29,11 +29,10 @@ abstract class Model implements JsonSerializable
             foreach ($value as &$v) {
                 $this->validate($property, $v);
             }
-            $this->$property = $value;
         } else {
             $this->validate($property, $value);
-            $this->$property = $value;
         }
+        $this->$property = $value;
     }
 
     public function __get($property)
@@ -59,7 +58,11 @@ abstract class Model implements JsonSerializable
 
     public function jsonSerialize()
     {
-        return get_object_vars($this);
+        $json = array();
+        foreach (get_object_vars($this) as $property => $value) {
+            $json[$property] = $this->__get($property);
+        }
+        return $json;
     }
 
     public function validate($property, $value)
@@ -101,17 +104,7 @@ abstract class Model implements JsonSerializable
     {
         $computed = array();
         $class = get_class($this);
-        foreach (Configuration::get($class, "properties") as $keyProperty => $options) {
-            if ($function = Configuration::get($class, "properties.$keyProperty.computed")) {
-                $computed[$keyProperty] = call_user_func($function, $this);
-            }
-        }
-        return When::all($computed, function ($computed) use ($class) {
-            foreach ($computed as $property => $value) {
-                $this->$property = $value;
-            }
-            return Storage::driver($class)->store($this);
-        });
+        return Storage::driver($class)->store($this);
     }
 
     public function delete()
