@@ -21,7 +21,8 @@
 		"bread/storage" : "~0.1",
 		"bread/helpers" : "~0.1",
 		"php" : ">=5.5",
-		"bread/http" : "~1.0"
+		"bread/http" : "~1.0",
+		"bread/authentication" : "~0.1"
 	},
 	"autoload" : {
 		"psr-0" : {

@@ -2,7 +2,7 @@
 
 namespace Bread\REST\Behaviors;
 
-use Bread\REST\Authentication;
+use Bread\Authentication\Manager as Authentication;
 
 abstract class ARO extends ACO {
 

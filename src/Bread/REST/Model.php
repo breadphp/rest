@@ -8,9 +8,10 @@ use Bread\REST\Exceptions\InvalidAttribute;
 use Bread\Caching\Cache;
 use Bread\Promises\When;
 use JsonSerializable;
-use Iterator;
+use Traversable;
 use Bread\Helpers\JSON;
 use Bread\Promises\Interfaces\Promise;
+use Bread\Storage\Reference;
 
 abstract class Model implements JsonSerializable
 {
@@ -25,7 +26,7 @@ abstract class Model implements JsonSerializable
     public function __set($property, $value)
     {
         $class = get_class($this);
-        if (Configuration::get($class, "properties.$property.multiple") && (is_array($value) || $value instanceof Iterator)) {
+        if (Configuration::get($class, "properties.$property.multiple") && (is_array($value) || $value instanceof Traversable)) {
             foreach ($value as &$v) {
                 $this->validate($property, $v);
             }
@@ -89,12 +90,27 @@ abstract class Model implements JsonSerializable
                     throw new InvalidAttribute($class, $property, $value);
                 }
                 break;
+            case 'text':
+                if (!is_string($value)) {
+                    throw new InvalidAttribute($class, $property, $value);
+                }
             default:
                 if (class_exists($type)) {
-                    if ($value instanceof $type || $value instanceof Promise) {
+                    if ($value instanceof Promise) {
+                        $value->then(function ($value) use ($class, $property, $type) {
+                            if ($value instanceof $type) {
+                                return true;
+                            } else {
+                                throw new InvalidAttribute($class, $property, $value);
+                            }
+                        });
+                        return true;
+                    } elseif (Reference::is($value, $type)) {
+                        return true;
+                    } elseif ($value instanceof $type) {
                         return true;
                     }
-                    throw new InvalidAttribute($class, $property, $class);
+                    throw new InvalidAttribute($class, $property, $value);
                 }
         }
         return true;

@@ -15,6 +15,7 @@
 namespace Bread\REST;
 
 use Bread\REST\Interfaces\RFC2616;
+use Bread\REST\Components\Authentication;
 use Bread\Networking\HTTP\Request;
 use Bread\Networking\HTTP\Response;
 use Bread\Networking\HTTP\Exception;
@@ -25,6 +26,7 @@ use Bread\Promises\Deferred;
 use Bread\Networking\HTTP\Client\Exceptions\UnsupportedMediaType;
 use Bread\Helpers\JSON;
 use Bread\Streaming\Bucket;
+use Bread\Configuration\Manager as Configuration;
 
 abstract class Controller implements RFC2616
 {
@@ -32,6 +34,8 @@ abstract class Controller implements RFC2616
     protected $response;
     protected $route;
     protected $data;
+    protected $authenticated;
+    protected $authentication;
     
     public function __construct(Request $request, Response $response, Route $route)
     {
@@ -39,7 +43,9 @@ abstract class Controller implements RFC2616
         $this->response = $response;
         $this->route = $route;
         $this->data = new Deferred();
-        $this->processData();
+        $this->authenticated = new Deferred();
+        $this->authentication = Authentication::factory($this, $request, $response);
+        $this->authentication->authenticate($this->authenticated->resolver());
     }
     
     public function __call($method, array $arguments = array())
@@ -67,7 +73,7 @@ abstract class Controller implements RFC2616
     public function head($resource)
     {
         $this->response->once('headers', array($this->response, 'end'));
-        return $this->get($parameters);
+        return $this->get($resource);
     }
     
     public function post($resource)
@@ -100,14 +106,30 @@ abstract class Controller implements RFC2616
     
     abstract public function controlledResource(array $parameters = array());
     
-    protected function processData()
+    protected function authenticate($realm = null)
+    {
+        return $this->authenticated->then(null, function () use ($realm) {
+            $method = Configuration::get(static::class, 'authentication.method');
+            $authenticationClass = Configuration::get(Authentication::class, "methods.$method");
+            $authenticationMethod = new $authenticationClass($this, $this->request, $this->response);
+            return $authenticationMethod->requireAuthentication($realm);
+        });
+    }
+    
+    protected function data()
     {
         switch ($this->request->type) {
             case 'application/json':
+                $bucket = new Bucket($this->request);
+                $this->request->on('end', function() use ($bucket) {
+                    $this->data->resolve(JSON::decode($bucket->contents()));
+                });
+                break;
             case 'application/x-www-form-urlencoded':
                 $bucket = new Bucket($this->request);
                 $this->request->on('end', function() use ($bucket) {
-                    $this->data->resolve($bucket->contents());
+                    parse_str($bucket->contents(), $data);
+                    $this->data->resolve($data);
                 });
                 break;
             case 'multipart/form-data':
@@ -118,6 +140,7 @@ abstract class Controller implements RFC2616
             case 'default':
                 throw new UnsupportedMediaType($this->request->type);
         }
+        return $this->data;
     }
     
     protected function decodeData($data)

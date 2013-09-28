@@ -32,7 +32,7 @@ class Router
                 if ($this->match($uri, $route, $parameters)) {
                     $controllerClass = $route->controller;
                     if (!is_subclass_of($controllerClass, Controller::class)) {
-                        throw new NotFound($this->request->uri);
+                        throw new NotFound($uri);
                     }
                     $controller = new $controllerClass($this->request, $this->response, $route);
                     $controlledResource = $controller->controlledResource($parameters);
