@@ -35,7 +35,7 @@ abstract class Model implements JsonSerializable
         }
         $this->$property = $value;
     }
-
+    
     public function __get($property)
     {
         return $this->$property;
@@ -56,7 +56,7 @@ abstract class Model implements JsonSerializable
     {
         return (string) $this->jsonSerialize();
     }
-
+    
     public function jsonSerialize()
     {
         $json = array();

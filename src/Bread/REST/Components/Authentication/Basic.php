@@ -1,7 +1,6 @@
 <?php
 namespace Bread\REST\Components\Authentication;
 
-use Bread\REST\Controller;
 use Bread\REST\Behaviors\ARO\Unauthenticated;
 use Bread\REST\Components\Interfaces\Authentication as AuthenticationInterface;
 use Bread\Networking\HTTP\Request;
@@ -13,6 +12,7 @@ use Bread\Authentication\Manager as Authentication;
 use Bread\Storage\Manager as Storage;
 use Bread\Promises\When;
 use Bread\REST\Components\Authentication\Token\Model;
+use DateTime;
 
 class Basic extends Method implements AuthenticationInterface
 {
@@ -21,7 +21,9 @@ class Basic extends Method implements AuthenticationInterface
     {
         list ($username, $password) = explode(":", base64_decode($this->data), 2);
         $promises = array();
-        $classes = (array) Configuration::get(get_class($this->controller), 'authentication.aro');
+        if (!$classes = (array) Configuration::get(get_class($this->controller), 'authentication.aro')) {
+            return $resolver->reject(new Unauthenticated());
+        }
         foreach ($classes as $class) {
             $promises[] = Authentication::driver($class)->authenticate($class, $username, $password);
         }
@@ -31,7 +33,16 @@ class Basic extends Method implements AuthenticationInterface
             $search = array(
                 $property => $username
             );
-            return Storage::driver($class)->first($class, $search);
+            return Storage::driver($class)->first($class, $search)->then(function ($aro) use ($username) {
+                return $aro;
+                $token = new Token\Model();
+                $token->expire = new DateTime('+1 day');
+                $token->aro = $aro;
+                $token->data = base64_encode("{$username}:" . uniqid());
+                return $token->store()->then(function ($token) {
+                    return $token->aro;
+                });
+            });
         })->then(array($resolver, 'resolve'), function ($class) use ($resolver) {
             return $resolver->reject(new Unauthenticated());
         });

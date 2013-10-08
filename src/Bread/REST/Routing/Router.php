@@ -30,15 +30,16 @@ class Router
         return $this->routingTable->then(function($routes) use ($uri) {
             foreach ($routes as $route) {
                 if ($this->match($uri, $route, $parameters)) {
-                    $controllerClass = $route->controller;
-                    if (!is_subclass_of($controllerClass, Controller::class)) {
-                        throw new NotFound($uri);
-                    }
-                    $controller = new $controllerClass($this->request, $this->response, $route);
-                    $controlledResource = $controller->controlledResource($parameters);
-                    $method = $this->inflectMethodName($this->request->method, $route->method);
-                    $callback = array($controller, $method);
-                    return array($callback, $controlledResource, $parameters);
+                    return array($route, $parameters);
+//                     $controllerClass = $route->controller;
+//                     if (!is_subclass_of($controllerClass, Controller::class)) {
+//                         throw new NotFound($uri);
+//                     }
+//                     $controller = new $controllerClass($this->request, $this->response, $route);
+//                     $controlledResource = $controller->controlledResource($parameters);
+//                     $method = $this->inflectMethodName($this->request->method, $route->method);
+//                     $callback = array($controller, $method);
+//                     return array($callback, $controlledResource, $parameters);
                 }
             }
             return When::reject($uri);
@@ -51,14 +52,5 @@ class Router
     {
         $template = new Template($route->uri);
         return $template->match($uri, $parameters);
-    }
-    
-    protected function inflectMethodName($method, $suffix = null)
-    {
-        $parts = explode('-', $method);
-        $parts = array_map('strtolower', $parts);
-        $first = array_shift($parts);
-        $parts = array_map('ucfirst', $parts);
-        return $first . implode('', $parts) . $suffix;
     }
 }

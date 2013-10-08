@@ -1,7 +1,6 @@
 <?php
 namespace Bread\REST\Components\Authentication;
 
-use Bread\REST\Controller;
 use Bread\REST\Behaviors\ARO\Unauthenticated;
 use Bread\REST\Components\Interfaces\Authentication as AuthenticationInterface;
 use Bread\Networking\HTTP\Request;

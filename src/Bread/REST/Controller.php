@@ -15,7 +15,6 @@
 namespace Bread\REST;
 
 use Bread\REST\Interfaces\RFC2616;
-use Bread\REST\Components\Authentication;
 use Bread\Networking\HTTP\Request;
 use Bread\Networking\HTTP\Response;
 use Bread\Networking\HTTP\Exception;
@@ -27,6 +26,7 @@ use Bread\Networking\HTTP\Client\Exceptions\UnsupportedMediaType;
 use Bread\Helpers\JSON;
 use Bread\Streaming\Bucket;
 use Bread\Configuration\Manager as Configuration;
+use Bread\REST\Behaviors\ARO;
 
 abstract class Controller implements RFC2616
 {
@@ -34,18 +34,14 @@ abstract class Controller implements RFC2616
     protected $response;
     protected $route;
     protected $data;
-    protected $authenticated;
-    protected $authentication;
+    protected $aro;
     
-    public function __construct(Request $request, Response $response, Route $route)
+    public function __construct(Request $request, Response $response, ARO $aro)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->route = $route;
+        $this->aro = $aro;
         $this->data = new Deferred();
-        $this->authenticated = new Deferred();
-        $this->authentication = Authentication::factory($this, $request, $response);
-        $this->authentication->authenticate($this->authenticated->resolver());
     }
     
     public function __call($method, array $arguments = array())
@@ -105,16 +101,6 @@ abstract class Controller implements RFC2616
     }
     
     abstract public function controlledResource(array $parameters = array());
-    
-    protected function authenticate($realm = null)
-    {
-        return $this->authenticated->then(null, function () use ($realm) {
-            $method = Configuration::get(static::class, 'authentication.method');
-            $authenticationClass = Configuration::get(Authentication::class, "methods.$method");
-            $authenticationMethod = new $authenticationClass($this, $this->request, $this->response);
-            return $authenticationMethod->requireAuthentication($realm);
-        });
-    }
     
     protected function data()
     {
