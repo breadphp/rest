@@ -27,6 +27,7 @@ use Bread\Helpers\JSON;
 use Bread\Streaming\Bucket;
 use Bread\Configuration\Manager as Configuration;
 use Bread\REST\Behaviors\ARO;
+use Bread\Networking\HTTP\Client\Exceptions\NotFound;
 
 abstract class Controller implements RFC2616
 {
@@ -100,7 +101,10 @@ abstract class Controller implements RFC2616
         throw new MethodNotAllowed(strtoupper(__FUNCTION__));
     }
     
-    abstract public function controlledResource(array $parameters = array());
+    public function controlledResource(array $parameters = array())
+    {
+        throw new NotFound($this->request->uri);
+    }
     
     protected function data()
     {
