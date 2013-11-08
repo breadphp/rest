@@ -16,6 +16,8 @@ class Route extends Model
 
     public $controller;
     
+    public $weight;
+    
     public function __construct($uri, $controller)
     {
         $this->uri = $uri;
@@ -33,5 +35,10 @@ Configuration\Manager::defaults('Bread\REST\Routing\Route', array(
     'keys' => array(
         'uri',
         'host'
+    ),
+    'properties' => array(
+        'weigth' => array(
+            'type' => 'integer'
+        )
     )
 ));
