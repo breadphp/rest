@@ -16,10 +16,10 @@ class Dispatcher
         $firewall = new Firewall($request, $response);
         return $router->route($request->uri)->then(function ($result) use ($request, $response, $firewall) {
             list ($route, $parameters) = $result;
-            return $firewall->access($route)->then(function ($result) use ($request, $response, $parameters) {
+            return $firewall->access($route)->then(function ($result) use ($request, $response, $parameters, $firewall) {
                 list ($aro, $route) = $result;
                 $controllerClass = $route->controller;
-                $controller = new $controllerClass($request, $response, $aro);
+                $controller = new $controllerClass($request, $response, $aro, $firewall);
                 $method = $this->inflectMethodName($request->method, $route->method);
                 $callback = array($controller, $method);
                 $resource = $controller->controlledResource($parameters);
@@ -50,6 +50,9 @@ class Dispatcher
     
     protected function inflectMethodName($method, $suffix = null)
     {
+        if ($method === 'OPTIONS') {
+            return $method;
+        }
         $parts = explode('-', $method);
         $parts = array_map('strtolower', $parts);
         $first = array_shift($parts);
