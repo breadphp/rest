@@ -22,7 +22,7 @@ class Router
     {
         $this->request = $request;
         $this->response = $response;
-        $this->routingTable = Route::fetch();
+        $this->routingTable = Route::fetch(array(), array('sort' => array('weight' => 1)));
     }
     
     public function route($uri)
