@@ -28,20 +28,24 @@ use Bread\Streaming\Bucket;
 use Bread\Configuration\Manager as Configuration;
 use Bread\REST\Behaviors\ARO;
 use Bread\Networking\HTTP\Client\Exceptions\NotFound;
+use Bread\REST\Routing\Firewall;
+use Bread\Event\Emitter;
 
-abstract class Controller implements RFC2616
+abstract class Controller extends Emitter implements RFC2616
 {
     protected $request;
     protected $response;
     protected $route;
     protected $data;
     protected $aro;
+    protected $firewall;
     
-    public function __construct(Request $request, Response $response, ARO $aro)
+    public function __construct(Request $request, Response $response, ARO $aro, Firewall $firewall)
     {
         $this->request = $request;
         $this->response = $response;
         $this->aro = $aro;
+        $this->firewall = $firewall;
         $this->data = new Deferred();
     }
     
@@ -64,7 +68,12 @@ abstract class Controller implements RFC2616
     public function get($resource)
     {
         $this->response->type('json');
-        return JSON::encode($resource);
+        $json = JSON::encode($resource);
+        if ($callback = $this->request->query['callback']) {
+            return "{$callback}({$json})";
+        } else {
+            return $json;
+        }
     }
     
     public function head($resource)
@@ -104,6 +113,15 @@ abstract class Controller implements RFC2616
     public function controlledResource(array $parameters = array())
     {
         throw new NotFound($this->request->uri);
+    }
+    
+    protected function location($href = '')
+    {
+        $location = array();
+        $location[] = $this->request->connection->isSecure() ? 'https://' : 'http://';
+        $location[] = $this->request->headers['Host'];
+        $location[] = $href;
+        return implode('', $location);
     }
     
     protected function data()
