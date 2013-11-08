@@ -34,9 +34,25 @@ class Firewall
 
     public function access(Route $route)
     {
+        if ($origin = $this->request->headers['Origin']) {
+            $this->response->headers['Access-Control-Allow-Origin'] = $origin;
+            $this->response->headers['Access-Control-Allow-Credentials'] = 'true';
+            $this->response->headers['Access-Control-Expose-Headers'] = 'Location,Content-Location,X-Token';
+        }
+        switch ($this->request->method) {
+            case 'OPTIONS':
+                $this->response->headers['Access-Control-Allow-Headers'] = $this->request->headers['Access-Control-Request-Headers'];
+                $this->response->headers['Access-Control-Allow-Methods'] = "GET,POST,PUT,PATCH,OPTIONS";
+                $this->response->headers['Access-Control-Max-Age'] = '1728000';
+                break;
+        }
         return $this->authenticated->then(null, function ($unauthenticated) {
             return $unauthenticated;
         })->then(function ($aro) use ($route) {
+            switch ($this->request->method) {
+                case 'OPTIONS':
+                    return array($aro, $route);
+            }
             return ACL::first(array('aco' => $route))->then(function ($acl) use ($aro) {
                 return $acl->authorize($aro, $this->request->method)->then(function ($route) use ($aro) {
                     return array($aro, $route);
