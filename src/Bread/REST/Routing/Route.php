@@ -4,8 +4,9 @@ namespace Bread\REST\Routing;
 use Bread\Configuration;
 use Bread\REST\Model;
 use Bread\REST\Routing\URI\Template;
+use Bread\REST\Behaviors\ACO;
 
-class Route extends Model
+class Route extends ACO
 {
 
     public $uri;

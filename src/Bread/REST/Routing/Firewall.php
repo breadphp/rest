@@ -68,9 +68,10 @@ class Firewall
             }
             return ACL::first(array('aco' => $route))->then(function ($acl) use ($aro) {
                 return $acl->authorize($aro, 'access');
-            }, function () use ($aro) {
+            }, function () use ($aro, $route) {
+                $this->defaultACL->aco = $route;
                 return $this->defaultACL->authorize($aro, 'access');
-            })->then(function () use ($aro, $route) {
+            })->then(function ($route) use ($aro) {
                 return array($aro, $route);
             });
         });

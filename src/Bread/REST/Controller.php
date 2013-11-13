@@ -14,7 +14,6 @@
  */
 namespace Bread\REST;
 
-use Bread\REST\Interfaces\RFC2616;
 use Bread\Networking\HTTP\Request;
 use Bread\Networking\HTTP\Response;
 use Bread\Networking\HTTP\Exception;
@@ -30,8 +29,9 @@ use Bread\REST\Behaviors\ARO;
 use Bread\Networking\HTTP\Client\Exceptions\NotFound;
 use Bread\REST\Routing\Firewall;
 use Bread\Event\Emitter;
+use Bread\REST\Interfaces\RFC5789;
 
-abstract class Controller extends Emitter implements RFC2616
+abstract class Controller extends Emitter implements RFC5789
 {
     protected $request;
     protected $response;
@@ -88,6 +88,11 @@ abstract class Controller extends Emitter implements RFC2616
     }
     
     public function put($resource)
+    {
+        throw new NotImplemented($this->request->method);
+    }
+    
+    public function patch($resource)
     {
         throw new NotImplemented($this->request->method);
     }
