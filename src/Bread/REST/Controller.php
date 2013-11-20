@@ -40,12 +40,13 @@ abstract class Controller extends Emitter implements RFC5789
     protected $aro;
     protected $firewall;
     
-    public function __construct(Request $request, Response $response, ARO $aro, Firewall $firewall)
+    public function __construct(Request $request, Response $response, ARO $aro, Firewall $firewall, Route $route)
     {
         $this->request = $request;
         $this->response = $response;
         $this->aro = $aro;
         $this->firewall = $firewall;
+        $this->route = $route;
         $this->data = new Deferred();
     }
     

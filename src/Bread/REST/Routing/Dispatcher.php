@@ -19,7 +19,7 @@ class Dispatcher
             return $firewall->access($route)->then(function ($result) use ($request, $response, $parameters, $firewall) {
                 list ($aro, $route) = $result;
                 $controllerClass = $route->controller;
-                $controller = new $controllerClass($request, $response, $aro, $firewall);
+                $controller = new $controllerClass($request, $response, $aro, $firewall, $route);
                 $method = $this->inflectMethodName($request->method, $route->method);
                 $callback = array($controller, $method);
                 $resource = $controller->controlledResource($parameters);
