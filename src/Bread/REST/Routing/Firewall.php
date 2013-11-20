@@ -50,12 +50,12 @@ class Firewall
         if ($origin = $this->request->headers['Origin']) {
             $this->response->headers['Access-Control-Allow-Origin'] = $origin;
             $this->response->headers['Access-Control-Allow-Credentials'] = 'true';
-            $this->response->headers['Access-Control-Expose-Headers'] = 'Location, Content-Location, X-Token';
+            $this->response->headers['Access-Control-Expose-Headers'] = 'Location, Content-Location, X-Token, X-Count';
         }
         switch ($this->request->method) {
             case 'OPTIONS':
                 $this->response->headers['Access-Control-Allow-Headers'] = $this->request->headers['Access-Control-Request-Headers'];
-                $this->response->headers['Access-Control-Allow-Methods'] = "GET, POST, PUT, PATCH, OPTIONS";
+                $this->response->headers['Access-Control-Allow-Methods'] = $this->request->headers['Access-Control-Request-Method'];
                 $this->response->headers['Access-Control-Max-Age'] = '1728000';
                 break;
         }
