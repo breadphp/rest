@@ -81,9 +81,8 @@ class ACL extends REST\Model
                 case ACE::PROPERTY:
                     foreach ($ace->properties as $prop) {
                         if (($this->aco->$prop instanceof ARO) && $this->aco->$prop->isMember($aro)) {
-                            return $authorized && !$this->invert ? When::resolve($this->aco) : When::reject(new Forbidden());
+                            return $authorized && !$ace->invert ? When::resolve($this->aco) : When::reject(new Forbidden());
                         }
-                        $result = ($value > $result) ? $value : $result;
                     }
                     break;
                 case ACE::SELF:
@@ -105,7 +104,7 @@ class ACL extends REST\Model
                     break;
             }
         }
-        return ($aro instanceof Authenticated) ? When::reject(new Exceptions\Forbidden()) : When::reject(new Unauthorized());
+        return ($aro instanceof Authenticated) ? When::reject(new Forbidden()) : When::reject(new Unauthorized());
     }
 
     protected function inherit($acl)
