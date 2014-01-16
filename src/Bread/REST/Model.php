@@ -25,15 +25,21 @@ abstract class Model implements JsonSerializable
 
     public function __set($property, $value)
     {
-        $class = get_class($this);
-        if (Configuration::get($class, "properties.$property.multiple") && (is_array($value) || $value instanceof Traversable)) {
-            foreach ($value as &$v) {
-                $this->validate($property, $v);
-            }
+        if ($value instanceof Promise) {
+            $value->then(function ($value) use ($property) {
+                $this->__set($property, $value);
+            });
         } else {
-            $this->validate($property, $value);
+            $class = get_class($this);
+            if (Configuration::get($class, "properties.$property.multiple") && (is_array($value) || $value instanceof Traversable)) {
+                foreach ($value as &$v) {
+                    $this->validate($property, $v);
+                }
+            } else {
+                $this->validate($property, $value);
+            }
+            $this->$property = $value;
         }
-        $this->$property = $value;
     }
 
     public function __get($property)
@@ -54,7 +60,7 @@ abstract class Model implements JsonSerializable
 
     public function __toString()
     {
-        return (string) $this->jsonSerialize();
+        return json_encode($this);
     }
 
     public function jsonSerialize()
@@ -97,12 +103,7 @@ abstract class Model implements JsonSerializable
                 break;
             default:
                 if (class_exists($type)) {
-                    if ($value instanceof Promise) {
-                        $value->then(function ($value) use ($class, $property, $type) {
-                            $this->__set($property, $value);
-                        });
-                        return true;
-                    } elseif (Reference::is($value, $type)) {
+                    if (Reference::is($value, $type)) {
                         return true;
                     } elseif ($value instanceof $type) {
                         return true;
