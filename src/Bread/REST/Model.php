@@ -35,7 +35,7 @@ abstract class Model implements JsonSerializable
         }
         $this->$property = $value;
     }
-    
+
     public function __get($property)
     {
         return $this->$property;
@@ -56,7 +56,7 @@ abstract class Model implements JsonSerializable
     {
         return (string) $this->jsonSerialize();
     }
-    
+
     public function jsonSerialize()
     {
         $json = array();
@@ -94,15 +94,12 @@ abstract class Model implements JsonSerializable
                 if (!is_string($value)) {
                     throw new InvalidAttribute($class, $property, $value);
                 }
+                break;
             default:
                 if (class_exists($type)) {
                     if ($value instanceof Promise) {
                         $value->then(function ($value) use ($class, $property, $type) {
-                            if ($value instanceof $type) {
-                                return true;
-                            } else {
-                                throw new InvalidAttribute($class, $property, $value);
-                            }
+                            $this->__set($property, $value);
                         });
                         return true;
                     } elseif (Reference::is($value, $type)) {
@@ -128,7 +125,7 @@ abstract class Model implements JsonSerializable
         $class = get_class($this);
         return Storage::driver($class)->delete($this);
     }
-    
+
     public static function fromJSON($json)
     {
         $object = new static;

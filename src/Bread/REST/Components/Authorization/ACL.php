@@ -24,7 +24,9 @@ class ACL extends REST\Model
 
     public function authorize(ARO $aro, $privilege = ACE::PRIVILEGE_READ)
     {
-        $this->acl = $this->inherit($this->inherit);
+        foreach ($this->inherit($this->inherit) as $inherited){
+            $this->acl->append($inherited);
+        }
         foreach ($this->acl as $ace) {
             $authorized = $ace->authorize($privilege);
             switch ($ace->type) {
@@ -80,7 +82,7 @@ class ACL extends REST\Model
                     break;
                 case ACE::PROPERTY:
                     foreach ($ace->properties as $prop) {
-                        if (($this->aco->$prop instanceof ARO) && $this->aco->$prop->isMember($aro)) {
+                        if (isset($this->aco->$prop) && ($this->aco->$prop instanceof ARO) && $this->aco->$prop->isMember($aro)) {
                             return $authorized && !$ace->invert ? When::resolve($this->aco) : When::reject(new Forbidden());
                         }
                     }
@@ -109,10 +111,14 @@ class ACL extends REST\Model
 
     protected function inherit($acl)
     {
+        $acls = array();
         foreach ($acl as $inheritedAcl) {
-            $this->acl = array_unique(array_merge($this->inherit($inheritedAcl->inherit), $this->acl, $inheritedAcl->acl));
+            if(is_object($inheritedAcl)){
+                $inheritedAcl = $inheritedAcl->acl->getArrayCopy();
+            }
+            $acls = array_merge($this->inherit(isset($inheritedAcl->inherit) ? $inheritedAcl->inherit : array()), $inheritedAcl);
         }
-        return $this->acl;
+        return $acls;
     }
 }
 
