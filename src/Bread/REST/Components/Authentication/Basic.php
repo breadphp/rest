@@ -34,20 +34,21 @@ class Basic extends Method implements AuthenticationInterface
                 $property => $username
             );
             return Storage::driver($class)->first($class, $search)->then(function ($aro) use ($username) {
+                $expiration = new DateTime('+1 day');
                 return Token\Model::first(array(
                     'aro' => $aro,
                     'expire' => array('$gt' => new DateTime())
-                ))->then(function ($token) {
-                    //$this->response->setCookie('Authorization', "Token {$token->data}", new DateTime('+1 week'), '/', null, false, false);
+                ))->then(function ($token) use ($expiration) {
+                    $this->response->setCookie('Authorization', "Token {$token->data}", $expiration, '/', null, true, false);
                     $this->response->headers['X-Token'] = $token->data;
                     return $token->aro;
-                }, function () use ($aro, $username) {
+                }, function () use ($aro, $username, $expiration) {
                     $token = new Token\Model();
-                    $token->expire = new DateTime('+1 day');
+                    $token->expire = $expiration;
                     $token->aro = $aro;
                     $token->data = base64_encode("{$username}:" . uniqid());
                     return $token->store()->then(function ($token) {
-                        //$this->response->setCookie('Authorization', "Token {$token->data}", new DateTime('+1 week'), '/', null, false, false);
+                        $this->response->setCookie('Authorization', "Token {$token->data}", $expiration, '/', null, true, false);
                         $this->response->headers['X-Token'] = $token->data;
                         return $token->aro;
                     });
