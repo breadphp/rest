@@ -47,7 +47,7 @@ class Basic extends Method implements AuthenticationInterface
                     $token->expire = $expiration;
                     $token->aro = $aro;
                     $token->data = base64_encode("{$username}:" . uniqid());
-                    return $token->store()->then(function ($token) {
+                    return $token->store()->then(function ($token) use ($expiration) {
                         $this->response->setCookie('Authorization', "Token {$token->data}", $expiration, '/', null, true, false);
                         $this->response->headers['X-Token'] = $token->data;
                         return $token->aro;
