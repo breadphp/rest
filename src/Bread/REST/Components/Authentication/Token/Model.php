@@ -26,8 +26,7 @@ Configuration::defaults(Model::class, array(
             'required' => true
         ),
         'expire' => array(
-            'type' => DateTime::class,
-            'required' => true
+            'type' => DateTime::class
         )
     )
 ));

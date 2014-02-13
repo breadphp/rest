@@ -16,7 +16,7 @@ use DateTime;
 
 class Basic extends Method implements AuthenticationInterface
 {
-    
+
     public function authenticate(Resolver $resolver)
     {
         list ($username, $password) = explode(":", base64_decode($this->data), 2);
@@ -34,24 +34,15 @@ class Basic extends Method implements AuthenticationInterface
                 $property => $username
             );
             return Storage::driver($class)->first($class, $search)->then(function ($aro) use ($username) {
-                $expiration = new DateTime('+1 day');
-                return Token\Model::first(array(
-                    'aro' => $aro,
-                    'expire' => array('$gt' => new DateTime())
-                ))->then(function ($token) use ($expiration) {
-                    $this->response->setCookie('Authorization', "Token {$token->data}", $expiration, '/', null, true, false);
+                $expiration = isset($this->request->headers['X-Device']) && $this->request->headers['X-Device'] === 'mobile' ? null : new DateTime('+1 day');
+                $token = new Token\Model();
+                $token->expire = $expiration;
+                $token->aro = $aro;
+                $token->data = base64_encode("{$username}:" . uniqid());
+                return $token->store()->then(function ($token) use ($expiration) {
+                    $this->response->setCookie('Authorization', "Token {$token->data}", "+1 day", '/', null, true, false);
                     $this->response->headers['X-Token'] = $token->data;
                     return $token->aro;
-                }, function () use ($aro, $username, $expiration) {
-                    $token = new Token\Model();
-                    $token->expire = $expiration;
-                    $token->aro = $aro;
-                    $token->data = base64_encode("{$username}:" . uniqid());
-                    return $token->store()->then(function ($token) use ($expiration) {
-                        $this->response->setCookie('Authorization', "Token {$token->data}", $expiration, '/', null, true, false);
-                        $this->response->headers['X-Token'] = $token->data;
-                        return $token->aro;
-                    });
                 });
             });
         })->then(array($resolver, 'resolve'), function ($class) use ($resolver) {

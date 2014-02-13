@@ -18,12 +18,13 @@ class Token extends Method implements AuthenticationInterface
     {
         return Token\Model::first(array(
             'data' => $this->data,
-            'expire' => array(
-                '$gt' => new DateTime()
+            '$or' => array(
+                array('expire' => array('$gt' => new DateTime())),
+                array('expire' => null)
             )
-        ))->then(function ($token) use ($resolver) {
+        ))->then(function ($token) use($resolver) {
             return $resolver->resolve($token->aro);
-        }, function () use ($resolver) {
+        }, function () use($resolver) {
             return $resolver->reject(new Unauthenticated());
         });
     }
