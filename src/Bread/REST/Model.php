@@ -76,7 +76,7 @@ abstract class Model implements JsonSerializable
     {
         $class = get_class($this);
         $required = Configuration::get($class, "properties.$property.required") ? true : false;
-        if ($value === null || $value === array() || (!is_object($value) && !is_array($value) && trim($value) === '')) {
+        if (!is_resource($value) && ($value === null || $value === array() || (!is_object($value) && !is_array($value) && trim($value) === ''))) {
             if ($required) {
                 throw new RequiredAttribute($class, $property);
             }
@@ -98,6 +98,11 @@ abstract class Model implements JsonSerializable
                 break;
             case 'text':
                 if (!is_string($value)) {
+                    throw new InvalidAttribute($class, $property, $value);
+                }
+                break;
+            case 'resource':
+                if (!is_resource($value)) {
                     throw new InvalidAttribute($class, $property, $value);
                 }
                 break;
