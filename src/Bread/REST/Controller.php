@@ -124,7 +124,9 @@ abstract class Controller extends Emitter implements RFC5789
     protected function location($href = '')
     {
         $location = array();
-        $location[] = $this->request->connection->isSecure() ? 'https://' : 'http://';
+        // FIXME Temporary workaround to force HTTPS location in ssltunnel connections
+        $location[] = Configuration::get(get_class($this), 'location.secure') ? 'https://' : 'http://';
+        //$location[] = $this->request->connection->isSecure() ? 'https://' : 'http://';
         $location[] = $this->request->headers['Host'];
         $location[] = $href;
         return implode('', $location);
