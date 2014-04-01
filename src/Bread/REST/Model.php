@@ -23,6 +23,10 @@ abstract class Model implements JsonSerializable
         }
     }
 
+    public function __destruct()
+    {
+    }
+
     public function __set($property, $value)
     {
         if ($value instanceof Promise) {
