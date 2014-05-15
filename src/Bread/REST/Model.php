@@ -123,17 +123,17 @@ abstract class Model implements JsonSerializable
         return true;
     }
 
-    public function store()
+    public function store($domain = '__default__')
     {
         $computed = array();
         $class = get_class($this);
-        return Storage::driver($class)->store($this);
+        return Storage::driver($class, $domain)->store($this);
     }
 
-    public function delete()
+    public function delete($domain = '__default__')
     {
         $class = get_class($this);
-        return Storage::driver($class)->delete($this);
+        return Storage::driver($class, $domain)->delete($this);
     }
 
     public static function fromJSON($json)
@@ -145,30 +145,30 @@ abstract class Model implements JsonSerializable
         return $object;
     }
 
-    public static function count(array $search = array(), array $options = array())
+    public static function count(array $search = array(), array $options = array(), $domain = '__default__')
     {
-        return static::storage(__FUNCTION__, $search, $options);
+        return static::storage(__FUNCTION__, $search, $options, $domain);
     }
 
-    public static function first(array $search = array(), array $options = array())
+    public static function first(array $search = array(), array $options = array(), $domain = '__default__')
     {
-        return static::storage(__FUNCTION__, $search, $options);
+        return static::storage(__FUNCTION__, $search, $options, $domain);
     }
 
-    public static function fetch(array $search = array(), array $options = array())
+    public static function fetch(array $search = array(), array $options = array(), $domain = '__default__')
     {
-        return static::storage(__FUNCTION__, $search, $options);
+        return static::storage(__FUNCTION__, $search, $options, $domain);
     }
 
-    public static function purge(array $search = array(), array $options = array())
+    public static function purge(array $search = array(), array $options = array(), $domain = '__default__')
     {
         $class = get_called_class();
-        return Storage::driver($class)->purge($class, $search, $options);
+        return Storage::driver($class, $domain)->purge($class, $search, $options);
     }
 
-    protected static function storage($function, array $search = array(), array $options = array())
+    protected static function storage($function, array $search = array(), array $options = array(), $domain)
     {
         $class = get_called_class();
-        return Storage::driver($class)->$function($class, $search, $options);
+        return Storage::driver($class, $domain)->$function($class, $search, $options);
     }
 }
