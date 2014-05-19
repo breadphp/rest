@@ -39,7 +39,7 @@ abstract class Controller extends Emitter implements RFC5789
     protected $data;
     protected $aro;
     protected $firewall;
-    
+
     public function __construct(Request $request, Response $response, ARO $aro, Firewall $firewall, Route $route)
     {
         $this->request = $request;
@@ -49,7 +49,7 @@ abstract class Controller extends Emitter implements RFC5789
         $this->route = $route;
         $this->data = new Deferred();
     }
-    
+
     public function __call($method, array $arguments = array())
     {
         throw new NotImplemented($this->request->method);
@@ -65,7 +65,7 @@ abstract class Controller extends Emitter implements RFC5789
         }
         $this->response->headers['Allow'] = $allowHeader;
     }
-    
+
     public function get($resource)
     {
         $this->response->type('json');
@@ -76,51 +76,51 @@ abstract class Controller extends Emitter implements RFC5789
             return $json;
         }
     }
-    
+
     public function head($resource)
     {
         $this->response->once('headers', array($this->response, 'end'));
         return $this->get($resource);
     }
-    
+
     public function post($resource)
     {
         throw new NotImplemented($this->request->method);
     }
-    
+
     public function put($resource)
     {
         throw new NotImplemented($this->request->method);
     }
-    
+
     public function patch($resource)
     {
         throw new NotImplemented($this->request->method);
     }
-    
-    public function delete($resource)
+
+    public function delete($resource, $domain = '__default__')
     {
-        return $resource->delete()->then(function($deletedResource) {
+        return $resource->delete($domain)->then(function($deletedResource) {
             return $this->response->status(Response::STATUS_NO_CONTENT);
         });
     }
-    
+
     public function trace($resource)
     {
         $this->response->type('message/http');
         return (string) $this->request;
     }
-    
+
     public function connect($resource)
     {
         throw new MethodNotAllowed(strtoupper(__FUNCTION__));
     }
-    
+
     public function controlledResource(array $parameters = array())
     {
         throw new NotFound($this->request->uri);
     }
-    
+
     protected function location($href = '')
     {
         $location = array();
@@ -131,7 +131,7 @@ abstract class Controller extends Emitter implements RFC5789
         $location[] = $href;
         return implode('', $location);
     }
-    
+
     protected function data()
     {
         switch ($this->request->type) {
@@ -158,7 +158,7 @@ abstract class Controller extends Emitter implements RFC5789
         }
         return $this->data;
     }
-    
+
     protected function decodeData($data)
     {
         switch ($this->request->type) {
@@ -166,7 +166,7 @@ abstract class Controller extends Emitter implements RFC5789
                 return JSON::decode($data);
         }
     }
-    
+
     protected function allowedMethods()
     {
         return array(
