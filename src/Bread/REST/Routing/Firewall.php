@@ -24,9 +24,9 @@ class Firewall
     protected $authenticated;
 
     protected $authentication;
-    
+
     protected $defaultACL;
-    
+
     public function __construct(Request $request, Response $response)
     {
         $this->request = $request;
@@ -50,7 +50,7 @@ class Firewall
         if ($origin = $this->request->headers['Origin']) {
             $this->response->headers['Access-Control-Allow-Origin'] = $origin;
             $this->response->headers['Access-Control-Allow-Credentials'] = 'true';
-            $this->response->headers['Access-Control-Expose-Headers'] = 'Location, Content-Location, X-Token, X-Count';
+            $this->response->headers['Access-Control-Expose-Headers'] = 'Location, Content-Location, X-Token, X-Count, X-Count-Total';
         }
         switch ($this->request->method) {
             case 'OPTIONS':
@@ -76,7 +76,7 @@ class Firewall
             });
         });
     }
-    
+
     public function authenticate($realm = null)
     {
         return $this->authenticated->then(null, function () use ($realm) {
