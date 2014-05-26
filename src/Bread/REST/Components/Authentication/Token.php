@@ -16,13 +16,14 @@ class Token extends Method implements AuthenticationInterface
 
     public function authenticate(Resolver $resolver)
     {
+        $domain = $this->request->headers['host'];
         return Token\Model::first(array(
             'data' => $this->data,
             '$or' => array(
                 array('expire' => array('$gt' => new DateTime())),
                 array('expire' => null)
             )
-        ))->then(function ($token) use($resolver) {
+        ), array(), $domain)->then(function ($token) use($resolver) {
             return $resolver->resolve($token->aro);
         }, function () use($resolver) {
             return $resolver->reject(new Unauthenticated());

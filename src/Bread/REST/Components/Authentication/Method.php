@@ -14,7 +14,7 @@ abstract class Method implements AuthenticationInterface
 {
 
     protected $controller;
-    
+
     protected $request;
 
     protected $response;

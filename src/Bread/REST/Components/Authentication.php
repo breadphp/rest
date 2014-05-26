@@ -24,7 +24,8 @@ class Authentication
         } elseif (preg_match(self::$authorizationPattern, $request->headers['Authorization'], $matches) ||
             preg_match(self::$authorizationPattern, $request->cookies['Authorization'], $matches)) {
             $method = strtolower($matches['method']);
-            if ($methodClass = Configuration::get(static::class, "methods.$method")) {
+            $domain = $request->headers['host'];
+            if ($methodClass = Configuration::get(static::class, "methods.$method", $domain)) {
                 return new $methodClass($controller, $request, $response, $matches['data']);
             } else {
                 throw new BadRequest();

@@ -32,10 +32,11 @@ class Firewall
         $this->request = $request;
         $this->response = $response;
         $this->authenticated = new Deferred();
+        $domain = $this->request->headers['host'];
         $this->authentication = Authentication::factory($this, $request, $response);
         $this->authentication->authenticate($this->authenticated->resolver());
         $this->defaultACL = new ACL();
-        $defaultACL = Configuration::get(static::class, 'acl.default');
+        $defaultACL = Configuration::get(static::class, 'acl.default', $domain);
         $this->defaultACL->acl = array(
             new ACE(array(
                 'type' => isset($defaultACL['type']) ? (int) $defaultACL['type'] : ACE::ALL,
@@ -66,7 +67,8 @@ class Firewall
                 case 'OPTIONS':
                     return array($aro, $route);
             }
-            return ACL::first(array('aco' => $route))->then(function ($acl) use ($aro) {
+            $domain = $this->request->headers['host'];
+            return ACL::first(array('aco' => $route), array(), $domain)->then(function ($acl) use ($aro) {
                 return $acl->authorize($aro, 'access');
             }, function () use ($aro, $route) {
                 $this->defaultACL->aco = $route;
@@ -80,8 +82,9 @@ class Firewall
     public function authenticate($realm = null)
     {
         return $this->authenticated->then(null, function () use ($realm) {
-            $method = Configuration::get(static::class, 'authentication.require');
-            $authenticationClass = Configuration::get(Authentication::class, "methods.$method");
+            $domain = $this->request->headers['host'];
+            $method = Configuration::get(static::class, 'authentication.require', $domain);
+            $authenticationClass = Configuration::get(Authentication::class, "methods.$method", $domain);
             $authenticationMethod = new $authenticationClass($this, $this->request, $this->response);
             return $authenticationMethod->requireAuthentication($realm);
         });

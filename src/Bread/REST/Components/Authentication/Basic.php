@@ -19,27 +19,28 @@ class Basic extends Method implements AuthenticationInterface
 
     public function authenticate(Resolver $resolver)
     {
+        $domain = $this->request->headers['host'];
         list ($username, $password) = explode(":", base64_decode($this->data), 2);
         $promises = array();
-        if (!$classes = (array) Configuration::get(get_class($this->controller), 'authentication.aro')) {
+        if (!$classes = (array) Configuration::get(get_class($this->controller), 'authentication.aro', $domain)) {
             return $resolver->reject(new Unauthenticated());
         }
         foreach ($classes as $class) {
-            $promises[] = Authentication::driver($class)->authenticate($class, $username, $password);
+            $promises[] = Authentication::driver($class, $domain)->authenticate($class, $username, $password);
         }
-        return When::any($promises, function ($authenticated) use ($resolver) {
+        return When::any($promises, function ($authenticated) use ($resolver, $domain) {
             list ($class, $username) = $authenticated;
-            $property = Configuration::get($class, 'authentication.mapping.username');
+            $property = Configuration::get($class, 'authentication.mapping.username', $domain);
             $search = array(
                 $property => $username
             );
-            return Storage::driver($class)->first($class, $search)->then(function ($aro) use ($username) {
+            return Storage::driver($class, $domain)->first($class, $search)->then(function ($aro) use ($username, $domain) {
                 $expiration = isset($this->request->headers['X-Device']) && $this->request->headers['X-Device'] === 'mobile' ? null : new DateTime('+1 day');
                 $token = new Token\Model();
                 $token->expire = $expiration;
                 $token->aro = $aro;
                 $token->data = base64_encode("{$username}:" . uniqid());
-                return $token->store()->then(function ($token) use ($expiration) {
+                return $token->store($domain)->then(function ($token) use ($expiration) {
                     $this->response->setCookie('Authorization', "Token {$token->data}", "+1 day", '/', null, true, false);
                     $this->response->headers['X-Token'] = $token->data;
                     return $token->aro;
