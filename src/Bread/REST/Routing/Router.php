@@ -17,14 +17,14 @@ class Router
     protected $response;
     protected $route;
     protected $routingTable;
-    
+
     public function __construct(Request $request, Response $response)
     {
         $this->request = $request;
         $this->response = $response;
-        $this->routingTable = Route::fetch(array(), array('sort' => array('weight' => 1)));
+        $this->routingTable = Route::fetch(array(), array('sort' => array('weight' => 1)), $this->request->headers['host']);
     }
-    
+
     public function route($uri)
     {
         return $this->routingTable->then(function($routes) use ($uri) {
@@ -47,7 +47,7 @@ class Router
             throw new NotFound($uri);
         });
     }
-    
+
     protected function match($uri, Route $route, &$parameters)
     {
         $template = new Template($route->uri);
