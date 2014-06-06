@@ -166,6 +166,12 @@ abstract class Model implements JsonSerializable
         return Storage::driver($class, $domain)->purge($class, $search, $options);
     }
 
+    public static function getAutoincrement($domain = '__default__')
+    {
+        $class = get_called_class();
+        return (int) Storage::driver($class, $domain)->autoincrement($class);
+    }
+
     protected static function storage($function, array $search = array(), array $options = array(), $domain)
     {
         $class = get_called_class();
