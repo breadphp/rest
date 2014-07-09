@@ -69,7 +69,8 @@ class Firewall
             }
             $domain = $this->request->headers['host'];
             return ACL::first(array('aco' => $route), array(), $domain)->then(function ($acl) use ($aro) {
-                return $acl->authorize($aro, 'access');
+                $grant = $this->request->method === 'POST' ? 'write' : 'access';
+                return $acl->authorize($aro, $grant);
             }, function () use ($aro, $route) {
                 $this->defaultACL->aco = $route;
                 return $this->defaultACL->authorize($aro, 'access');

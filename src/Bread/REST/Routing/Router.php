@@ -51,6 +51,7 @@ class Router
     protected function match($uri, Route $route, &$parameters)
     {
         $template = new Template($route->uri);
-        return $template->match($uri, $parameters);
+        $domain = $this->request->headers['host'];
+        return $template->match($uri, $parameters) && ($domain === $route->host || is_null($route->host));
     }
 }
