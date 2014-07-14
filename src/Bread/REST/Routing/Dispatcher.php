@@ -47,7 +47,7 @@ class Dispatcher
             return $response->flush($exception->getMessage());
         });
     }
-    
+
     protected function inflectMethodName($method, $suffix = null)
     {
         if ($method === 'OPTIONS') {
