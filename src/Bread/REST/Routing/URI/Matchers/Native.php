@@ -18,7 +18,7 @@ class Native implements Matcher
 
     protected $variables = array();
 
-    protected $exclude = '[^\.\+\/#\?&;]*';
+    protected $exclude = '[^\?&]*';
 
     protected $prefixes = array(
         ".",
