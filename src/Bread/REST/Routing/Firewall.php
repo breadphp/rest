@@ -9,6 +9,7 @@ use Bread\REST\Components\Authentication;
 use Bread\REST\Components\Authorization\ACL;
 use Bread\REST\Components\Authorization\ACE;
 use Bread\Promises\When;
+use Bread\Storage\Collection;
 use Bread\Configuration\Manager as Configuration;
 use Bread\Networking\HTTP\Client\Exceptions\Forbidden;
 
@@ -37,13 +38,13 @@ class Firewall
         $this->authentication->authenticate($this->authenticated->resolver());
         $this->defaultACL = new ACL();
         $defaultACL = Configuration::get(static::class, 'acl.default', $domain);
-        $this->defaultACL->acl = array(
-            new ACE(array(
+        $this->defaultACL->acl = new Collection();
+        $this->defaultACL->acl->append(new ACE(array(
                 'type' => isset($defaultACL['type']) ? (int) $defaultACL['type'] : ACE::ALL,
                 'grant' => isset($defaultACL['grant']) ? (array) $defaultACL['grant'] : array(ACE::PRIVILEGE_ALL),
                 'deny' => isset($defaultACL['deny']) ? (array) $defaultACL['deny'] : array()
-            ))
-        );
+            )
+        ));
     }
 
     public function access(Route $route)

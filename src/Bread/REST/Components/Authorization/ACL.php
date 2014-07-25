@@ -18,16 +18,14 @@ class ACL extends REST\Model
 
     protected $aco;
 
-    protected $acl = [];
+    protected $acl;
 
-    protected $inherit = [];
+    protected $inherit;
 
     public function authorize(ARO $aro, $privilege = ACE::PRIVILEGE_READ)
     {
-        foreach ($this->inherit($this->inherit) as $inherited){
-            $this->acl->append($inherited);
-        }
-        foreach ($this->acl as $ace) {
+        $acl = array_merge($this->acl ? $this->acl->getArrayCopy() : array(), $this->inherit ? $this->inherit($this->inherit) : array());
+        foreach ($acl as $ace) {
             $authorized = $ace->authorize($privilege);
             switch ($ace->type) {
                 case ACE::REF:
@@ -138,8 +136,7 @@ Configuration::defaults(ACL::class, array(
         ),
         'acl' => array(
             'type' => 'Bread\REST\Components\Authorization\ACE',
-            'multiple' => true,
-            'cascade' => true
+            'multiple' => true
         ),
         'inherit' => array(
             'type' => 'Bread\REST\Components\Authorization\ACL',
