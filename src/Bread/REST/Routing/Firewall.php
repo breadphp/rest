@@ -4,6 +4,7 @@ namespace Bread\REST\Routing;
 use Bread\Networking\HTTP;
 use Bread\Networking\HTTP\Request;
 use Bread\Networking\HTTP\Response;
+use Bread\Networking\HTTP\Client\Exceptions\BadRequest;
 use Bread\Promises\Deferred;
 use Bread\REST\Components\Authentication;
 use Bread\REST\Components\Authorization\ACL;

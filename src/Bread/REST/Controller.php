@@ -66,10 +66,10 @@ abstract class Controller extends Emitter implements RFC5789
         $this->response->headers['Allow'] = $allowHeader;
     }
 
-    public function get($resource, $properties = array())
+    public function get($resource, $properties = array(), $append = array())
     {
         $this->response->type('json');
-        $json = JSON::encode($resource, $properties);
+        $json = JSON::encode($resource, $properties, $append);
         if ($callback = $this->request->query['callback']) {
             return "{$callback}({$json})";
         } else {
