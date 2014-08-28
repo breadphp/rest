@@ -153,8 +153,12 @@ abstract class Controller extends Emitter implements RFC5789
                     $this->data->resolve($parts);
                 });
                 break;
-            case 'default':
-                throw new UnsupportedMediaType($this->request->type);
+            default:
+                $bucket = new Bucket($this->request);
+                $this->request->on('end', function() use ($bucket) {
+                    $this->data->resolve($bucket->contents());
+                });
+                break;
         }
         return $this->data;
     }
