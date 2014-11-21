@@ -14,20 +14,18 @@
 		"mvc"
 	],
 	"homepage" : "https://github.com/breadphp/rest",
-	"license" : [
-		"CC-BY-3.0"
-	],
+	"license" : "CC-BY-3.0",
 	"require" : {
-		"bread/storage" : "~0.1",
-		"bread/helpers" : "~0.1",
+		"bread/storage" : "~0.9",
+		"bread/helpers" : "~0.3",
 		"php" : ">=5.5",
-		"bread/event" : "~1.0",
-		"bread/http" : "~1.0",
-		"bread/authentication" : "~0.1"
+		"bread/event" : "~1.3",
+		"bread/http" : "~1.6",
+		"bread/authentication" : "~0.2"
 	},
 	"autoload" : {
-		"psr-0" : {
-			"Bread\\REST" : "src"
+		"psr-4" : {
+			"Bread\\REST\\" : "src"
 		}
 	}
 }

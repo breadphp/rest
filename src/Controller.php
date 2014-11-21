@@ -39,6 +39,7 @@ abstract class Controller extends Emitter implements RFC5789
     protected $data;
     protected $aro;
     protected $firewall;
+    protected $domain;
 
     public function __construct(Request $request, Response $response, ARO $aro, Firewall $firewall, Route $route)
     {
@@ -48,6 +49,7 @@ abstract class Controller extends Emitter implements RFC5789
         $this->firewall = $firewall;
         $this->route = $route;
         $this->data = new Deferred();
+        $this->domain = $this->request->headers['host'];
     }
 
     public function __call($method, array $arguments = array())
@@ -98,9 +100,9 @@ abstract class Controller extends Emitter implements RFC5789
         throw new NotImplemented($this->request->method);
     }
 
-    public function delete($resource, $domain = '__default__')
+    public function delete($resource)
     {
-        return $resource->delete($domain)->then(function($deletedResource) {
+        return $resource->delete($this->domain)->then(function($deletedResource) {
             return $this->response->status(Response::STATUS_NO_CONTENT);
         });
     }
@@ -125,7 +127,7 @@ abstract class Controller extends Emitter implements RFC5789
     {
         $location = array();
         // FIXME Temporary workaround to force HTTPS location in ssltunnel connections
-        $location[] = Configuration::get(get_class($this), 'location.secure') ? 'https://' : 'http://';
+        $location[] = Configuration::get(get_class($this), 'location.secure', $this->domain) ? 'https://' : 'http://';
         //$location[] = $this->request->connection->isSecure() ? 'https://' : 'http://';
         $location[] = $this->request->headers['Host'];
         $location[] = $href;

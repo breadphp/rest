@@ -1,5 +1,4 @@
 <?php
-
 namespace Bread\REST\Routing;
 
 use Bread\Networking\HTTP;
