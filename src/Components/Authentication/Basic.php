@@ -34,14 +34,15 @@ class Basic extends Method implements AuthenticationInterface
             $search = array(
                 $property => $username
             );
-            return Storage::driver($class, $domain)->first($class, $search)->then(function ($aro) use ($username, $domain) {
+            return Storage::driver($class, $domain)->first($class, $search)->then(function ($aro) use ($class, $username, $domain) {
                 $expiration = isset($this->request->headers['X-Device']) && $this->request->headers['X-Device'] === 'mobile' ? null : new DateTime('+1 day');
                 $token = new Token\Model();
                 $token->expire = $expiration;
                 $token->aro = $aro;
                 $token->data = base64_encode("{$username}:" . uniqid());
-                return $token->store($domain)->then(function ($token) use ($expiration) {
-                    $this->response->setCookie('Authorization', "Token {$token->data}", "+1 day", '/', null, true, false);
+                return $token->store($domain)->then(function ($token) use ($expiration, $class, $domain) {
+                    $secure = Configuration::get($class, 'location.secure', $domain);
+                    $this->response->setCookie('Authorization', "Token {$token->data}", "+1 day", '/', null, $secure, false);
                     $this->response->headers['X-Token'] = $token->data;
                     return $token->aro;
                 });
