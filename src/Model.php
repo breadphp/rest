@@ -155,9 +155,9 @@ abstract class Model implements JsonSerializable
         return static::storage(__FUNCTION__, $search, $options, $domain);
     }
 
-    public static function fetch(array $search = array(), array $options = array(), $domain = '__default__')
+    public static function fetch(array $search = array(), array $options = array(), $domain = '__default__', array $properties = array())
     {
-        return static::storage(__FUNCTION__, $search, $options, $domain);
+        return static::storage(__FUNCTION__, $search, $options, $domain, $properties);
     }
 
     public static function purge(array $search = array(), array $options = array(), $domain = '__default__')
@@ -172,9 +172,9 @@ abstract class Model implements JsonSerializable
         return (int) Storage::driver($class, $domain)->autoincrement($class);
     }
 
-    protected static function storage($function, array $search = array(), array $options = array(), $domain)
+    protected static function storage($function, array $search = array(), array $options = array(), $domain, array $properties = array())
     {
         $class = get_called_class();
-        return Storage::driver($class, $domain)->$function($class, $search, $options);
+        return Storage::driver($class, $domain)->$function($class, $search, $options, $properties);
     }
 }
